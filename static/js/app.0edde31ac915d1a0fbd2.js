@@ -26,7 +26,7 @@ webpackJsonp([1], [function (t, e, n) {
             return n("main", {staticClass: "container"}, [n("section", {staticClass: "content"}, [n("h1", {staticClass: "masked"}, [t._v("Scott Shen")]), t._v(" "), n("p", {staticClass: "info"}, [t._v("Web Design")]), t._v(" "), n("a", {
                 staticClass: "blog",
                 attrs: {href: "./archives/", title: "Blog"}
-            })]), t._v(" ")])
+            }, [t._v("Blogs")])]), t._v(" "), ])
         }]
     }
 }], [3]);
