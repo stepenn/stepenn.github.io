@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+
+    
+  <url>
+    <loc>http://zhangr.top/2017/05/02/you-donot-konw-this/</loc>
+    <lastmod>2017-05-02T04:26:04.000Z</lastmod>
+    <data>
+        <display>
+        <title>JS中的This别再被问倒了，面试常见问题分析</title>
+        <pubTime>2017-05-02T04:21:31.000Z</pubTime>
+        
+        <tag>ES6</tag>
+         
+        <tag>JavaScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="JavaScript" url="http://zhangr.top/categories/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
+  <url>
+    <loc>http://zhangr.top/2016/09/07/JS-obj-creation-maintenance-analysis/</loc>
+    <lastmod>2017-04-08T09:01:20.000Z</lastmod>
+    <data>
+        <display>
+        <title>JavaScript对象的的创建及属性状态维护分析</title>
+        <pubTime>2016-09-07T02:07:43.000Z</pubTime>
+        
+        <tag>ES6</tag>
+         
+        <tag>JavaScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="JavaScript" url="http://zhangr.top/categories/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://zhangr.top/2017/02/14/echartsDashboard/</loc>
+    <lastmod>2017-04-08T08:57:14.000Z</lastmod>
+    <data>
+        <display>
+        <title>Vue2+Echarts实现多种图表数据可视化</title>
+        <pubTime>2017-02-14T07:20:56.000Z</pubTime>
+        
+        <tag>vue</tag>
+         
+        <tag>vue-router</tag>
+         
+        <tag>vuex</tag>
+         
+        <tag>echarts</tag>
+         
+        <tag>ES6</tag>
+         
+        <tag>axios</tag>
+         
+        <tag>webpack</tag>
+         
+         
+           
+             
+              <breadCrumb title="Vue" url="http://zhangr.top/categories/Vue/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://zhangr.top/2017/03/24/eleme/</loc>
+    <lastmod>2017-04-08T08:57:14.000Z</lastmod>
+    <data>
+        <display>
+        <title>vue2构建高仿饿了么平台以及遇到的坑</title>
+        <pubTime>2017-03-24T06:21:05.000Z</pubTime>
+        
+        <tag>vue</tag>
+         
+        <tag>vue-router</tag>
+         
+        <tag>vuex</tag>
+         
+        <tag>ES6</tag>
+         
+        <tag>axios</tag>
+         
+        <tag>webpack</tag>
+         
+         
+           
+             
+              <breadCrumb title="vue" url="http://zhangr.top/categories/vue/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://zhangr.top/2016/09/12/es6-statement/</loc>
+    <lastmod>2017-04-08T08:56:03.000Z</lastmod>
+    <data>
+        <display>
+        <title>ES6语句或语句块中的闭包问题详解</title>
+        <pubTime>2016-09-12T09:17:28.000Z</pubTime>
+        
+        <tag>ES6</tag>
+         
+        <tag>JavaScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="JavaScript" url="http://zhangr.top/categories/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
+</urlset>

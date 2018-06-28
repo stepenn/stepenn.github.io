@@ -1,0 +1,988 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="ES6,JavaScript," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Simon's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/static/avatar.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="在说属性之前，我们先来了解一下ES5的新方法,Object.create()函数。 新的对象创建方法在旧的“原型继承”观念中，它的本质上是“复制原型”，即：以原型为模板复制一个新的对象。然而我们应该注意到一点事实：在这个思路上，“构造器函数”本身是无意义的。更确切的说，构造器函数对实例的修饰作用可有可无，例如： 1234//在构造器中修饰对象实例function MyObject()&amp;#123;">
+<meta name="keywords" content="ES6,JavaScript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JavaScript对象的的创建及属性状态维护分析">
+<meta property="og:url" content="http://zhangr.top/2016/09/07/JS-obj-creation-maintenance-analysis/index.html">
+<meta property="og:site_name" content="Simon&#39;s Blog">
+<meta property="og:description" content="在说属性之前，我们先来了解一下ES5的新方法,Object.create()函数。 新的对象创建方法在旧的“原型继承”观念中，它的本质上是“复制原型”，即：以原型为模板复制一个新的对象。然而我们应该注意到一点事实：在这个思路上，“构造器函数”本身是无意义的。更确切的说，构造器函数对实例的修饰作用可有可无，例如： 1234//在构造器中修饰对象实例function MyObject()&amp;#123;">
+<meta property="og:updated_time" content="2017-04-08T09:01:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JavaScript对象的的创建及属性状态维护分析">
+<meta name="twitter:description" content="在说属性之前，我们先来了解一下ES5的新方法,Object.create()函数。 新的对象创建方法在旧的“原型继承”观念中，它的本质上是“复制原型”，即：以原型为模板复制一个新的对象。然而我们应该注意到一点事实：在这个思路上，“构造器函数”本身是无意义的。更确切的说，构造器函数对实例的修饰作用可有可无，例如： 1234//在构造器中修饰对象实例function MyObject()&amp;#123;">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: undefined,
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://zhangr.top/2016/09/07/JS-obj-creation-maintenance-analysis/"/>
+
+  <title> JavaScript对象的的创建及属性状态维护分析 | Simon's Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?783f73f854f798750b155f5d337d5e91";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+    
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader" style="background-image: url('http://bpic.588ku.com/back_pic/04/38/81/91584d04816eb9a.jpg');">
+      <div class="header-inner"><a class="site-home" href="/">Simon's Blog</a>
+
+<div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <div href="/"  class="brand">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Simon's Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </div>
+  </div>
+  <p class="site-subtitle">My Own Best Enemy</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+      <div class="header-post"> 
+  <div class="post-header">
+      <div class="tags">
+      
+        <a href="/tags/ES6/" rel="tag" title="ES6">ES6</a>
+      
+        <a href="/tags/JavaScript/" rel="tag" title="JavaScript">JavaScript</a>
+      
+      </div>
+      <h1>JavaScript对象的的创建及属性状态维护分析</h1>
+      <h2 class="subtitle"></h2>
+      <div class="post-time">
+        <span class="post-meta-item-text">Posted on </span>
+        <time itemprop="dateCreated" datetime="2016-09-07T10:07:43+08:00" content="2016-09-07" title="2016-09-07 10:07:43">
+          2016-09-07
+        </time>
+      </div>
+  </div>
+ </div>
+    </header>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                JavaScript对象的的创建及属性状态维护分析
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2016-09-07T10:07:43+08:00" content="2016-09-07">
+              2016-09-07
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/JavaScript/" itemprop="url" rel="index">
+                    <span itemprop="name">JavaScript</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          <!-- 
+            
+           -->
+
+          
+
+          
+          
+             <span id="/2016/09/07/JS-obj-creation-maintenance-analysis/" class="leancloud_visitors" data-flag-title="JavaScript对象的的创建及属性状态维护分析">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">visitors </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+              &nbsp; | &nbsp;
+              <span class="page-pv"><i class="fa fa-file-o"></i>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+              </span>
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在说属性之前，我们先来了解一下ES5的新方法,Object.create()函数。</p>
+<h1 id="新的对象创建方法"><a href="#新的对象创建方法" class="headerlink" title="新的对象创建方法"></a>新的对象创建方法</h1><p>在旧的“原型继承”观念中，它的本质上是“复制原型”，即：以原型为模板复制一个新的对象。然而我们应该注意到一点事实：在这个思路上，“构造器函数”本身是无意义的。更确切的说，构造器函数对实例的修饰作用可有可无，例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//在构造器中修饰对象实例</span></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">MyObject</span>(<span class="params"></span>)</span>&#123;</div><div class="line">	<span class="keyword">this</span>.yyy = ...;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>当意识到这一点后，ES5实现Object.cerate()这样一种简单的方法，通过这一方法将“构造器函数”从对象创建过程中赶了出去。在新的机制中，对象变成了简单的“原型继承+属性定义”，而不再需要“构造器”这样一层语义，例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//新的对象创建方法</span></div><div class="line">newObj = <span class="built_in">Object</span>.create(prototypeObj,PropertyDescriptors);</div></pre></td></tr></table></figure>
+<p>这里的PropertyDescriptors是一组属性描述符，用于声明基于prototypeObj这个原型之上的一些新的属性添加或修改，它与defineProperties()方法中的props参数是一样的，并在事实上也将调用后者。它的用法如下例所示：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> aPrototypeObject = &#123;<span class="attr">name1</span>:<span class="string">"value1"</span>&#125;;</div><div class="line"><span class="keyword">var</span> aNewInstance = <span class="built_in">Object</span>.create(aPrototypeObject,&#123;</div><div class="line">	<span class="attr">name2</span>:&#123;<span class="attr">value</span>:<span class="string">'value2'</span>&#125;,</div><div class="line">	<span class="attr">name3</span>:&#123;<span class="attr">get</span>:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123; <span class="keyword">return</span> <span class="string">'value3'</span> &#125;&#125;</div><div class="line">&#125;)</div></pre></td></tr></table></figure>
+<p>很显然，在这种新方案中我们看不到类似MyObject()那样的构造器了。事实上在引擎实现Object.create()时也并不特别地声明某个构造器。</p>
+<p><strong><font color="red">所以，所有由Object.create()创建的对象实例具有各自不同的原型（这取决于调用create()方法时传入的参数）,但它们的constractor值指向相同的引用——引擎内建的Object构造器。</font></strong></p>
+<h1 id="属性状态维护"><a href="#属性状态维护" class="headerlink" title="属性状态维护"></a>属性状态维护</h1><p>ES5中在Object()上声明了三组方法，用于维护对象本身在属性方面的信息，如下表（Markdown不会使用分组列表，大家凑合看看。。如果有知道的也告诉我一下哈~）</p>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th style="text-align:center">方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>取属性列表</td>
+<td style="text-align:center">getOwnPropertyNames(obj)</td>
+<td>取对象自有的属性名数组</td>
+</tr>
+<tr>
+<td>取属性列表</td>
+<td style="text-align:center">keys(obj)</td>
+<td>取对象自由的、可见的属性名数组</td>
+</tr>
+<tr>
+<td>状态维护</td>
+<td style="text-align:center">preventExtensions(obj)</td>
+<td>使实例obj不能添加新属性</td>
+</tr>
+<tr>
+<td>状态维护</td>
+<td style="text-align:center">seal(obj)</td>
+<td>使实例obj不能添加新属性，也不能删除既有属性</td>
+</tr>
+<tr>
+<td>状态维护</td>
+<td style="text-align:center">freeze(obj)</td>
+<td>使实例obj所有属性只读，且不能再添加、删除属性</td>
+</tr>
+<tr>
+<td>状态检查</td>
+<td style="text-align:center">isExtensible(obj)</td>
+<td>返回preventExtensions状态</td>
+</tr>
+<tr>
+<td>状态检查</td>
+<td style="text-align:center">isSealed(obj)</td>
+<td>返回seal状态</td>
+</tr>
+<tr>
+<td>状态检查</td>
+<td style="text-align:center">isFrozen(obj)</td>
+<td>返回freeze状态</td>
+</tr>
+</tbody>
+</table>
+<p>其中，preventExtensions、seal和freeze三种状态都是针对对象来操作的，会影响到所有属性的性质的设置。需要强调的有两点：</p>
+<ul>
+<li>由原型继承来的性质同样会受到影响</li>
+<li>以当前对象作为原型时，子类可以通过重新定义同名属性来覆盖这些状态</li>
+</ul>
+<p>更进一步的说，这三种状态是无法影响子类使用defineProperty()和defineProperties()来“重新定义（覆盖）”同名属性的。</p>
+<p>本质上说，delete运算是用于删除运算对象属性的属性描述符，而非某个属性。</p>
+<h2 id="取属性列表"><a href="#取属性列表" class="headerlink" title="取属性列表"></a>取属性列表</h2><p>取属性列表的传统方法是使用for…in语句。为方便后续讨论，我们先为该语句封装一个与Object.keys()类似的方法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">Object</span>.forIn = <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>)</span>&#123;</div><div class="line">	<span class="keyword">var</span> Result = [];</div><div class="line">	<span class="keyword">for</span>(<span class="keyword">var</span> n <span class="keyword">in</span> obj) Result.push(n);</div><div class="line">	<span class="keyword">return</span> Result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>forIn()得到的总是该对象全部可见的属性列表。而keys()将是其中的一个子集，即<font color="red">“自有的(不包括继承而来的)”可见属性列表。</font>下面的例子将显示二者的不同：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> obj1 = &#123;<span class="attr">n1</span>:<span class="number">100</span>&#125;;</div><div class="line"><span class="keyword">var</span> obj2 = <span class="built_in">Object</span>.create(obj1,&#123;<span class="attr">n2</span> : &#123;<span class="attr">value</span> :<span class="number">200</span>,<span class="attr">enumerable</span>:<span class="literal">true</span>&#125;&#125;);</div><div class="line"></div><div class="line"><span class="comment">//显示'n1' , 'n2'</span></div><div class="line"><span class="comment">//  - 其中n1继承自obj1</span></div><div class="line">alert(<span class="built_in">Object</span>.forIn(obj2));</div><div class="line"></div><div class="line"><span class="comment">//显示'n2'</span></div><div class="line">alert(<span class="built_in">Object</span>.keys(obj2));</div></pre></td></tr></table></figure>
+<p>getOwnPropertyNames()得到的与上述两种情况都不相同。它列举全部自有的属性，但无论它是否可见。也就是说，<font color="red">它是keys()所列举内容的超集，包括全部可见和不可见的、自有的属性。</font>仍以上述为例：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// (续上例)</span></div><div class="line"></div><div class="line"><span class="comment">//定义属性名n3,其enumerable性质默认为false</span></div><div class="line"><span class="built_in">Object</span>.defineProperty(obj2,<span class="string">'n3'</span>,&#123;<span class="attr">value</span>:<span class="number">300</span>&#125;)</div><div class="line"></div><div class="line"><span class="comment">//仍然显示'n1','n2'</span></div><div class="line"><span class="comment">// - 新定义的n3不可见</span></div><div class="line">alert(<span class="built_in">Object</span>.forIn(obj2));</div><div class="line"></div><div class="line"><span class="comment">//显示'n2'</span></div><div class="line">alert(<span class="built_in">Object</span>.keys(obj2));</div><div class="line"></div><div class="line"><span class="comment">//显示n2,n3</span></div><div class="line">alert(<span class="built_in">Object</span>.getOwnPropertyNames(obj2));</div></pre></td></tr></table></figure>
+<h2 id="使用defineProperty来维护属性的性质"><a href="#使用defineProperty来维护属性的性质" class="headerlink" title="使用defineProperty来维护属性的性质"></a>使用defineProperty来维护属性的性质</h2><p>在defineProperty()或defineProperties()中操作某个属性时，如果该名字的属性未声明则新建它；如果已经存在，则使用描述符中的新的性质来覆盖旧的性质值。</p>
+<p>这也意味着一个使用”数据属性描述符”的属性，也可以重新使用”存取属性描述符”——但总的来说只能存在其中一个。例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> pOld,pNew;</div><div class="line"><span class="keyword">var</span> obj = &#123; <span class="attr">data</span> : <span class="string">'oldValue'</span>&#125;</div><div class="line"></div><div class="line"><span class="comment">//显示'value,writable,enumerable,configuable'</span></div><div class="line">pOld = <span class="built_in">Object</span>.getOwnPropertyDescriptor(obj,<span class="string">'data'</span>);</div><div class="line">alert(<span class="built_in">Object</span>.keys(pOld));</div><div class="line"></div><div class="line"><span class="comment">//步骤一：通过一个闭包来保存旧的obj.data的值</span></div><div class="line"><span class="built_in">Object</span>.defineProperty(obj,<span class="string">'data'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">oldValue</span>)</span>&#123;</div><div class="line">	<span class="keyword">return</span> &#123;</div><div class="line">		<span class="attr">get</span>:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123; <span class="keyword">return</span> oldValue&#125;,</div><div class="line">		<span class="attr">configurable</span>:<span class="literal">false</span></div><div class="line">	&#125;</div><div class="line">&#125;(obj.data))</div><div class="line"></div><div class="line"><span class="comment">//显示'get,set,enumerable,configurable'</span></div><div class="line">pNew = <span class="built_in">Object</span>.getOwnPropertyDescriptor(obj,<span class="string">'data'</span>);</div><div class="line">alert(pNew);</div><div class="line"></div><div class="line"><span class="comment">//步骤二：测试使用重定义的getter来取obj.data的值</span></div><div class="line"><span class="comment">// - 显示 'oldValue'</span></div><div class="line">alert(obj.data);</div><div class="line"></div><div class="line"><span class="comment">//步骤三：（测试）尝试再次声明data属性</span></div><div class="line"><span class="comment">// - 由于在步骤一中已经设置configurable为false，因此导致异常(can't redefine)。</span></div><div class="line"><span class="built_in">Object</span>.defineProperty(obj,<span class="string">'data'</span>,&#123;<span class="attr">value</span>:<span class="number">100</span>&#125;);</div></pre></td></tr></table></figure>
+<h2 id="对于继承自原型的属性，修改其值的效果"><a href="#对于继承自原型的属性，修改其值的效果" class="headerlink" title="对于继承自原型的属性，修改其值的效果"></a>对于继承自原型的属性，修改其值的效果</h2><p>如果某个从原型继承来的属性是可写的，并且它使用的是”数据属性描述符”，那么在子类中修改该值，将隐式地创建一个属性描述符。这个新属性描述符将按照”向对象添加一个属性”的规格来初始化。即：必然是数据属性描述符，且Writable,Enumerable和Configurable均为true值。例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> obj1 = &#123;<span class="attr">n1</span> : <span class="number">100</span>&#125;;</div><div class="line"><span class="keyword">var</span> obj2 = <span class="built_in">Object</span>.create(obj1);</div><div class="line"></div><div class="line"><span class="comment">//显示为空</span></div><div class="line"><span class="comment">// - 重置n1的enumerable性质为false，因此在obj1中是不可见的</span></div><div class="line"><span class="built_in">Object</span>.defineProperty(obj1,<span class="string">'n1'</span>,&#123;<span class="attr">enumerable</span>:<span class="literal">false</span>&#125;)</div><div class="line">alert(<span class="built_in">Object</span>.keys(obj1));</div><div class="line"></div><div class="line"><span class="comment">//显示为空</span></div><div class="line"><span class="comment">// - n1不是obj2的自有属性</span></div><div class="line">alert(<span class="built_in">Object</span>.getOwnPropertyNames(obj2));</div><div class="line"></div><div class="line"><span class="comment">//显示n1</span></div><div class="line"><span class="comment">// - 由于n1赋值导致新的属性描述符，因此n1成为了自有的属性</span></div><div class="line">obj2.n1 = <span class="string">'newValue'</span>;</div><div class="line">alert(<span class="built_in">Object</span>.getOwnPropertyNames(obj2));</div><div class="line"></div><div class="line"><span class="comment">//显示n1,表明n1是可见的</span></div><div class="line"><span class="comment">// - 由于新的属性描述符的enumerable重置为true，因此在obj2中它是可见的</span></div><div class="line">alert(<span class="built_in">Object</span>.keys(obj2));</div></pre></td></tr></table></figure>
+<p>如果一个属性使用的是”存取属性描述符”,那么无论它的读写性为何，都不会新建属性描述符。对子类中该属性的读写，都只会忠诚地调用（继承而来的、原型中的）读写器。</p>
+<h2 id="重写原型继承来的属性的描述符"><a href="#重写原型继承来的属性的描述符" class="headerlink" title="重写原型继承来的属性的描述符"></a>重写原型继承来的属性的描述符</h2><p>使用defineProperty()或defineProperties()将重新定义该属性，会显式的创建一个属性描述符。在这种情况下，该属性也将变成自雷对象中”自有的”属性，它的可见性等性质就由新的描述符来决定。</p>
+<p>与上一小节不同的是，这与原型中该属性是否”只读”或是否允许修改性质(configurable)无关。</p>
+<p>这可能导致类似如下的情况：在父类中某个属性时只读的，并且不可修改其描述符性质的，但是在子类中，同一个名字的属性却可以读写并可以重新修改性质。更为严重的是，仅仅观察两个对象实例的外观，我们无法识别这种差异是如何导致的。下面的示例说明这种情况：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> obj1 = &#123;<span class="attr">n1</span> : <span class="number">100</span>&#125;;</div><div class="line"><span class="keyword">var</span> obj2 = <span class="built_in">Object</span>.create(obj1);</div><div class="line"></div><div class="line"><span class="comment">//对于原型对象obj1,修改其属性n1的性质，使其不可列举、修改、且不能重设性质</span></div><div class="line"><span class="built_in">Object</span>.defineProperty(obj1,<span class="string">'n1'</span>,&#123;<span class="attr">writable</span>:<span class="literal">false</span>,<span class="attr">enumerable</span>:<span class="literal">false</span>,<span class="attr">configurable</span>:<span class="literal">false</span>&#125;);</div><div class="line"></div><div class="line"><span class="comment">//显示为空,obj1.n1是不可列举的</span></div><div class="line">alert(<span class="built_in">Object</span>.keys(obj1));</div><div class="line"></div><div class="line"><span class="comment">//由于不可重设性质，因此对obj1.n1的下述调用将导致异常</span></div><div class="line"><span class="comment">//Object.defineProperty(obj1,'n1',&#123;configurable:true&#125;);</span></div></pre></td></tr></table></figure>
+<p>接下来我们观察”重新定义属性”带来的效果：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//(续上例)</span></div><div class="line"></div><div class="line"><span class="comment">//重新定义obj2.n1</span></div><div class="line"><span class="built_in">Object</span>.defineProperty(obj2,<span class="string">'n1'</span>,&#123;<span class="attr">value</span>:obj2.n1,<span class="attr">writable</span>:<span class="literal">true</span>,<span class="attr">enumerable</span>:<span class="literal">true</span>,<span class="attr">configurable</span>:<span class="literal">true</span>&#125;);</div><div class="line"></div><div class="line"><span class="comment">//显示newValue'</span></div><div class="line"><span class="comment">// - 结论:可以通过重定义属性，使该属性从"只读"变成"可读写"（以及其他性质的变化）</span></div><div class="line">obj2.n1 = <span class="string">'newValue'</span>;</div><div class="line">alert(obj2.n1);</div><div class="line"></div><div class="line"><span class="comment">//列举obj2的自有性质，结果显示：n1</span></div><div class="line"><span class="comment">// - 现在n1是自有的属性了</span></div><div class="line">alert(<span class="built_in">Object</span>.getOwnpropertyNames(obj2));</div></pre></td></tr></table></figure>
+<p>从表面上看，一个父类中只读的属性在子类变成了可读写。而且，一旦我们用delete删除该属性，它又会恢复父类中的值和性质。例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//尝试删除该属性</span></div><div class="line"><span class="comment">// - 显示100，即它在原型中的值</span></div><div class="line"><span class="keyword">delete</span> obj2.n1;</div><div class="line">alert(obj2.n1);</div></pre></td></tr></table></figure>
+<p>再次强调这一事实：<font color="red">在ES5中没有任何方法可以阻止上述过程。也就是说，我们无法阻止子类对父类同名属性的重定义，也无法避免这种重定义可能带来的业务逻辑问题。</font></p>
+
+        所有文章非特别说明皆为原创。部分内容可能会作修改，为保证信息与源同步，转载时请务必注明文章出处！谢谢合作 :-)
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+  <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+    <div>if you think this article helpful, you can buy me a cup of coffee</div>
+    <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+      <span>赏</span>
+    </button>
+    <div id="QR" style="display: none;">
+      
+        <div id="wechat" style="display: inline-block">
+          <img id="wechat_qr" src="/images/pay/wPay.jpg" alt="Simon Zhang WeChat Pay"/>
+          <p>微信打赏</p>
+        </div>
+      
+      
+        <div id="alipay" style="display: inline-block">
+          <img id="alipay_qr" src="/images/pay/aPay.jpg" alt="Simon Zhang Alipay"/>
+          <p>支付宝打赏</p>
+        </div>
+      
+    </div>
+  </div>
+
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ES6/" rel="tag">#ES6</a>
+          
+            <a href="/tags/JavaScript/" rel="tag">#JavaScript</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/09/12/es6-statement/" rel="prev" title="ES6语句或语句块中的闭包问题详解">
+                ES6语句或语句块中的闭包问题详解 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" >
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8yODE0NS80NzE4"></div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpeg"
+               alt="Simon Zhang" />
+          <p class="site-author-name" itemprop="name">Simon Zhang</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">5</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/SimonZhangITer" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/SimonZhangr" target="_blank" title="Twitter">
+                  
+                    <i class="fa fa-fw fa-twitter"></i>
+                  
+                  Twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/3120797583/profile?topnav=1&wvr=6" target="_blank" title="微博">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  微博
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/SimonZhangR/activities" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+          <div class="cc-license motion-element" itemprop="license">
+            <a href="http://creativecommons.org/licenses/by-nc-sa/4.0" class="cc-opacity" target="_blank">
+              <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+            </a>
+          </div>
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#新的对象创建方法"><span class="nav-number">1.</span> <span class="nav-text">新的对象创建方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#属性状态维护"><span class="nav-number">2.</span> <span class="nav-text">属性状态维护</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#取属性列表"><span class="nav-number">2.1.</span> <span class="nav-text">取属性列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用defineProperty来维护属性的性质"><span class="nav-number">2.2.</span> <span class="nav-text">使用defineProperty来维护属性的性质</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对于继承自原型的属性，修改其值的效果"><span class="nav-number">2.3.</span> <span class="nav-text">对于继承自原型的属性，修改其值的效果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重写原型继承来的属性的描述符"><span class="nav-number">2.4.</span> <span class="nav-text">重写原型继承来的属性的描述符</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Simon Zhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/SimonZhangITer/hexo-theme-NextZ">
+    NextZ
+  </a>
+</div>
+<script>
+(function(){
+    var bp = document.createElement('script');
+    bp.src = '//push.zhanzhang.baidu.com/push.js';
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv"><i class="fa fa-user"></i><span class="busuanzi-value" id="busuanzi_value_site_uv"></span></span>
+  
+
+  
+    <span class="site-pv"><i class="fa fa-eye"></i><span class="busuanzi-value" id="busuanzi_value_site_pv"></span></span>
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+      <!-- UY BEGIN -->
+      
+      <!-- UY END -->
+  
+
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function (d, s) {
+      var j,
+        e = d.getElementsByTagName(s)[0];
+      if (typeof LivereTower === 'function') {
+        return;
+      }
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+      e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  </script>
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("sFL6ozIsP1ifXmne7AFsKPBv-gzGzoHsz", "Iv7ckvubgKj3alA1AegMERgo");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>
